@@ -8,6 +8,7 @@
 #define configurationCharacteristicUUID "a37530b1-1a89-4a35-b52e-9f1bd5fd05d7"
 #define ssidCharacteristicUUID "a37530b2-1a89-4a35-b52e-9f1bd5fd05d7"
 #define passwordCharacteristicUUID "a37530b3-1a89-4a35-b52e-9f1bd5fd05d7"
+#define ipCharacteristicUUID "a37530b4-1a89-4a35-b52e-9f1bd5fd05d7"
 
 #define STATE_SERVICE_UUID "6bd5ad50-0624-4c0a-9472-2b016cfe3570"
 #define temperatureCharacteristicUUID "6bd5ad51-0624-4c0a-9472-2b016cfe3570"
@@ -23,6 +24,7 @@ BLEService *baseService;
 BLECharacteristic *configurationCharacteristic;
 BLECharacteristic *ssidCharacteristic;
 BLECharacteristic *passwordCharacteristic;
+BLECharacteristic *ipCharacteristic;
 
 BLEService *stateService;
 BLECharacteristic *temperatureCharacteristic;
@@ -130,10 +132,13 @@ public:
         baseService = pServer->createService(SERVICE_UUID);
         configurationCharacteristic = baseService->createCharacteristic(configurationCharacteristicUUID, BLECharacteristic::PROPERTY_WRITE);
         configurationCharacteristic->setCallbacks(new ConfigurationCallbaks());
+
         ssidCharacteristic = baseService->createCharacteristic(ssidCharacteristicUUID, BLECharacteristic::PROPERTY_WRITE);
         ssidCharacteristic->setCallbacks(new SsidCallbaks());
+
         passwordCharacteristic = baseService->createCharacteristic(passwordCharacteristicUUID, BLECharacteristic::PROPERTY_WRITE);
         passwordCharacteristic->setCallbacks(new PasswordCallbaks());
+
         baseService->start();
     }
 
@@ -153,6 +158,8 @@ public:
         openStateCommandCharacteristic = commandService->createCharacteristic(openStateCommandCharacteristicUUID, BLECharacteristic::PROPERTY_WRITE);
         openStateCommandCharacteristic->setCallbacks(new OpenStateCommandCallbaks());
         openStateCommandCharacteristic->addDescriptor(new BLE2902());
+        ipCharacteristic = commandService->createCharacteristic(ipCharacteristicUUID, BLECharacteristic::PROPERTY_NOTIFY|BLECharacteristic::PROPERTY_READ);
+        ipCharacteristic->addDescriptor(new BLE2902());
         commandService->start();
     }
 
@@ -192,6 +199,15 @@ public:
     {
             temperatureCharacteristic->setValue(value);
             temperatureCharacteristic->notify();
+    }
+
+    void setIP(char* ip)
+    {
+
+            ipCharacteristic->setValue(ip);
+            ipCharacteristic->notify();
+    
+        
     }
 
     void setState(bool state){

@@ -5,7 +5,7 @@ private:
     u_int16_t noiseSensorThresholdValue = 2000;
 
     bool temperatureSensorState = true;
-    u_int8_t temperatureSensorThresholdValue = 20;
+    u_int8_t temperatureSensorThresholdValue = 100;
 public:
     Settings(){}
     bool noiseSensorIsActive(){

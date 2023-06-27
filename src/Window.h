@@ -12,16 +12,16 @@ class Window
 private:
     /////////////Pins//////////////
     byte temperatureSensorPin = 18;
-    byte encoderFirstPin = 2;
-    byte encoderSecondPin = 15;
+    byte encoderFirstPin = 15;
+    byte encoderSecondPin = 2;
     byte noiseSensorPin = 19;
-    byte motorClosePin = 22;
-    byte motorOpenPin = 23;
-    byte openTrailerPin = 34;
-    byte closeTrailerPin = 35;
+    byte motorClosePin = 23;
+    byte motorOpenPin = 22;
+    byte openTrailerPin = 35;
+    byte closeTrailerPin = 34;
 
-    byte buttonClosePin = 33;
-    byte buttonOpenPin = 32;
+    byte buttonClosePin = 32;
+    byte buttonOpenPin = 33;
     ///////////////////////////////
     ////////////Objects/////////////
     TemperatureSensor temperatureSensor = TemperatureSensor(temperatureSensorPin);
@@ -50,6 +50,7 @@ private:
     u_int8_t buttonOpenClickCounter = 0;
     long lastClickToCloseButton = 0;
     u_int8_t buttonCloseClickCounter = 0;
+    int memoryEncoderValue = -999;
 
     long lastTemperatureWrite = 0;
 
@@ -57,11 +58,11 @@ private:
     {
         if (settings.temperatureSensorIsActive())
         {
-            if (temperatureSensor.getTemperature() < settings.getTemperatureSensorThreshold())
-            {
-                requiredPosition = 0;
-                closeWindow();
-            }
+            // if (temperatureSensor.getTemperature() < settings.getTemperatureSensorThreshold())
+            // {
+            //     requiredPosition = 0;
+            //     closeWindow();
+            // }
 
             if(millis() - lastTemperatureWrite > 10000){
                 lastTemperatureWrite = millis();
@@ -75,11 +76,13 @@ private:
     void motorProtection(){
         if(motor.getState() == motor.MOVE_OPEN){
             if(openTrailer.isPush()){
+                Serial.println("openTrailer push");
                 motor.stop();
             }
         }
         if(motor.getState() == motor.MOVE_CLOSE){
             if(closeTrailer.isPush()){
+                Serial.println("closeTrailer push");
                 motor.stop();
             }
         }
@@ -130,7 +133,21 @@ private:
     }
 
     void encoderListener(){
+        static int lastEncoderWriteMemory = 0;
         encoder.work();
+        if(millis() - lastEncoderWriteMemory > 3000){
+            lastEncoderWriteMemory = millis();
+            Serial.println("-----------");
+            Serial.println(motor.getState());
+            Serial.println(memoryEncoderValue);
+            Serial.println(encoder.getState());
+            Serial.println("-----------");
+
+            if(motor.getState() != motor.STAND && memoryEncoderValue == encoder.getState()){
+                motor.stop();
+            }
+            memoryEncoderValue = encoder.getState();
+        }
         if(encoder.getState() == requiredPosition){
             motor.stop();
         }
